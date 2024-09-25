@@ -67,18 +67,22 @@ namespace CrazyMusicians.Controllers
             var id = _crazyMusicians.Max(x => x.Id) + 1;
             musician.Id = id;
             _crazyMusicians.Add(musician);
-
             return CreatedAtAction(nameof(GetMusician), new { id = musician.Id }, musician);
         }
 
         // PATCH - Update profession and patch other fields
-        [HttpPatch("reprofession/{id:int:min(1)}/{newProfession}/")]
+        [HttpPatch("reprofession/{id:int:min(1)}/{newProfession}")]
         public IActionResult ReprofessionMusician(int id, string newProfession, [FromBody] JsonPatchDocument<CrazyMusician> patchDocument)
         {
-            var musician = _crazyMusicians.FirstOrDefault(m => m.Id == id);
-            if (musician == null)
+            var musican = _crazyMusicians.FirstOrDefault(tour => tour.Id == id);
+            if (musican == null)
             {
-                return NotFound($"Musician with ID {id} not found.");
+                return NotFound($"Musician with id {id} not found.");
+            }
+
+            if (string.IsNullOrWhiteSpace(newProfession))
+            {
+                return BadRequest("New profession cannot be empty.");
             }
 
             if (patchDocument == null)
@@ -86,11 +90,8 @@ namespace CrazyMusicians.Controllers
                 return BadRequest("Patch document cannot be null.");
             }
 
-            // Profession update
-            musician.Profession = newProfession;
-
-            // Apply patch document
-            patchDocument.ApplyTo(musician, ModelState);
+            musican.Profession = newProfession;
+            patchDocument.ApplyTo(musican, ModelState);
 
             if (!ModelState.IsValid)
             {
